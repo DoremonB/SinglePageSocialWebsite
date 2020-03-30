@@ -185,7 +185,7 @@ class ExploreNewFriend extends React.Component {
           console.log("myDisplayList ::" +n._id)
             return <Row style={{display: 'flex',alignItems: 'center',overflow:'hidden'}} className="border border-primary m-2">
                 <Col sm={2} >
-                    <Image style={{height:'auto',width:'100%',margin:'0.5rem'}} src={n.profile_pic} roundedCircle />
+                    <Image style={{height:'auto',width:'100%',margin:'0.5rem'}} src={n.profile_pic[n.profile_pic.length-1]} roundedCircle />
                 </Col>
                 <Col sm={8} >
                     <Card style={{margin:'0.5rem',textAlign:'left'}}>

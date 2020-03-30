@@ -51,6 +51,11 @@ users.post('/getAllUserData',checkAuth,async(req,res)=>{
   return res.json({alldata})
 })
 
+users.post('/currentUser',checkAuth,async(req,res,next)=>{
+  const user=await User.findById(req.decoded._id)
+  return res.json({user})
+})
+
 users.post('/getAllPostByMyFriends',checkAuth,async(req,res)=>{
   console.log("User id is : "+req.decoded._id)
   // const alldata=await (await MyFriendList.findOne({user:req.decoded._id}).populate('friends')).execPopulate()
@@ -149,7 +154,9 @@ users.post('/register',async (req, res) => {
       last_name: req.body.last_name,
       email: req.body.email,
       password: req.body.password,
-      created: today
+      created: today,
+      profile_pic:['http://res.cloudinary.com/dn5lfusbo/image/upload/v1585563298/blog/instagram-sketched.png2020-03-30T10:14:56.903Z.png'],
+      cover_pic:['http://res.cloudinary.com/dn5lfusbo/image/upload/v1585563298/blog/instagram-sketched.png2020-03-30T10:14:56.903Z.png']
     }
 
     const user= await User.findOne({
@@ -204,8 +211,8 @@ users.post('/register',async (req, res) => {
                   last_name: user.last_name,
                   email: user.email,
 		              bio:user.bio,
-                  profile_pic:user.profile_pic,
-                  cover_pic:user.cover_pic
+                  profile_pic:user.profile_pic[user.profile_pic.length-1],
+                  cover_pic:user.cover_pic[user.cover_pic.length-1]
                 }
                 let token = jwt.sign(payload, process.env.SECRET_KEY, {
                   expiresIn: 1440
@@ -755,11 +762,12 @@ users.post('/changeProfilePic',checkAuth,async (req, res) => {
         try{
            
             
-            user.profile_pic=image.url
+            // user.profile_pic=image.url
+            user.profile_pic.push(image.url)
             await user.save()
                 
 
-                res.json({'status':'success','profile_image_url':user.profile_pic})
+                res.json({'status':'success','profile_image_url':user.profile_pic[user.profile_pic.length-1]})
             }
             catch(err){
                 res.json({'error':err})
@@ -827,11 +835,12 @@ users.post('/changeCoverPic',checkAuth,async (req, res) => {
         try{
            
             
-            user.cover_pic=image.url
+            // user.cover_pic=image.url
+            user.cover_pic.push(image.url)
             await user.save()
                 
 
-                res.json({'status':'success','cover_image_url':user.cover_pic})
+                res.json({'status':'success','cover_image_url':user.cover_pic[user.cover_pic.length-1]})
             }
             catch(err){
                 res.json({'error':err})

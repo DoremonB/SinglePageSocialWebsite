@@ -33,7 +33,11 @@ class Home extends React.Component {
       profile_pic:'',
       bio:'',
 
-      currentTab:''
+      currentTab:'',
+
+      currentUser:null,
+      profilePicArray:[],
+      coverPicArray:[],
 
     }
     this.handleComment=this.handleComment.bind(this)
@@ -54,32 +58,46 @@ class Home extends React.Component {
   }
 
   async componentDidMount() {
+
+    const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+    {
+      headers:{
+        'authorization':'Bearer '+localStorage.usertoken,
+        "Content-type": "multipart/form-data",
+      }
+    })
+    // console.log('currentUser.data '+currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1])
     
-    if(!localStorage.usertoken){
-      this.props.history.push(`/login`)
-      return
-    }
-    const token = localStorage.usertoken
     
-    const decoded = jwt_decode(token)
-    console.log("decoded :"+decoded.first_name)
-    console.log("decoded :"+decoded.email)
-    console.log("decoded :"+decoded._id)
+    // if(!localStorage.usertoken){
+    //   this.props.history.push(`/login`)
+    //   return
+    // }
+    // const token = localStorage.usertoken
+    
+    // const decoded = jwt_decode(token)
+    // console.log("decoded :"+decoded.first_name)
+    // console.log("decoded :"+decoded.email)
+    // console.log("decoded :"+decoded._id)
     this.setState({
-      first_name: decoded.first_name,
-      email: decoded.email,
-      ID:decoded._id,
-      profile_pic:decoded.profile_pic,
-      cover_pic:decoded.cover_pic,
-      bio:decoded.bio,
+      profilePicArray:currentUser.data.user.profile_pic,
+      coverPicArray:currentUser.data.user.cover_pic,
 
       show_profile_pic_moodle:false,
       profile_image_file:'',
 
       show_cover_pic_moodle:false,
       cover_image_file:'',
+
+      email: currentUser.data.user.email,
+      ID:currentUser.data.user._id,
+      profile_pic:currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1],
+      cover_pic:currentUser.data.user.cover_pic[currentUser.data.user.cover_pic.length-1],
+      bio:currentUser.data.user.bio,
+      currentUser:currentUser.data.user
       
     })
+    //this.state.currentUser.profile_pic
     
   }
   profile_image_click(e){
@@ -95,7 +113,7 @@ class Home extends React.Component {
   
   
 
-  handleSubmitProfileFile = () => {
+  async handleSubmitProfileFile(){
     console.log('here clicked :')
     const data = new FormData() 
     data.append('image', this.state.profile_image_file)
@@ -105,7 +123,7 @@ class Home extends React.Component {
       console.log(key, value);
     }
   
-    axios.post("http://localhost:5000/users/changeProfilePic", data, 
+    await axios.post("http://localhost:5000/users/changeProfilePic", data, 
     {
       headers: {
           "Authorization": "Bearer "+localStorage.usertoken,
@@ -122,10 +140,37 @@ class Home extends React.Component {
 
         })
 
+        const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+        {
+          headers:{
+            'authorization':'Bearer '+localStorage.usertoken,
+            "Content-type": "multipart/form-data",
+          }
+        })
+        
+        this.setState({
+          profilePicArray:currentUser.data.user.profile_pic,
+          coverPicArray:currentUser.data.user.cover_pic,
+    
+          show_profile_pic_moodle:false,
+          profile_image_file:'',
+    
+          show_cover_pic_moodle:false,
+          cover_image_file:'',
+    
+          email: currentUser.data.user.email,
+          ID:currentUser.data.user._id,
+          profile_pic:currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1],
+          cover_pic:currentUser.data.user.cover_pic[currentUser.data.user.cover_pic.length-1],
+          bio:currentUser.data.user.bio,
+          currentUser:currentUser.data.user
+          
+        })
+
 
             
   }
-  handleSubmitCoverFile = () => {
+  async handleSubmitCoverFile(){
     console.log('here clicked :')
     const data = new FormData() 
     data.append('image', this.state.cover_image_file)
@@ -135,7 +180,7 @@ class Home extends React.Component {
       console.log(key, value);
     }
   
-    axios.post("http://localhost:5000/users/changeCoverPic", data, 
+    await axios.post("http://localhost:5000/users/changeCoverPic", data, 
     {
       headers: {
           "Authorization": "Bearer "+localStorage.usertoken,
@@ -150,6 +195,33 @@ class Home extends React.Component {
             cover_pic:res.data.cover_image_url,
           })
 
+        })
+
+    const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+        {
+          headers:{
+            'authorization':'Bearer '+localStorage.usertoken,
+            "Content-type": "multipart/form-data",
+          }
+        })
+        
+        this.setState({
+          profilePicArray:currentUser.data.user.profile_pic,
+          coverPicArray:currentUser.data.user.cover_pic,
+    
+          show_profile_pic_moodle:false,
+          profile_image_file:'',
+    
+          show_cover_pic_moodle:false,
+          cover_image_file:'',
+    
+          email: currentUser.data.user.email,
+          ID:currentUser.data.user._id,
+          profile_pic:currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1],
+          cover_pic:currentUser.data.user.cover_pic[currentUser.data.user.cover_pic.length-1],
+          bio:currentUser.data.user.bio,
+          currentUser:currentUser.data.user
+          
         })
 
 
@@ -224,42 +296,6 @@ class Home extends React.Component {
 
     return (
       <>
-      {/* <MyFilteringComponent style={{position:'absolute'}} content={countries} /> */}
-{/* {this.state.show && <div
-  aria-live="polite"
-  aria-atomic="true"
-  style={{
-    position:'fixed',
-    width:'100%',
-    height:'100px',
-    backgroundColor:'transparent',
-    // marginRight:'-25%',
-    top:'0px',
-    right:'0px',
-    // left:'60%',
-    zIndex:'1000'
-  }}
->
-  <div
-    style={{
-      position: 'absolute',
-      top: 0,
-      right: '1rem',
-    }}
-  > 
-<Alert dismissible variant="success" onClose={()=>{ this.setState({ show:false }) }}>
-    You Added a Comment(Alert) !
-    <Alert.Link href="#">an example link</Alert.Link>. Give it a click if you
-    like.
-</Alert>
-</div>      
-</div>} */}
-
-
-
-
-
-
 
 {/* Toast         */}
 <div
@@ -425,14 +461,47 @@ class Home extends React.Component {
               <Row>
                 <Col>
                   <Container className="border border-primary mt-2">
-                    {[1,2].map((num)=>{
-                      return(
-                        <Row>
-                          <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.profile_pic} fluid thumbnail/></Col>
-                          <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.profile_pic} fluid thumbnail/></Col> 
-                        </Row>
-                      )
+                    {this.state.profilePicArray.map((p,index)=>{
+                      console.log("indexx"+index)
+                      if(index%2 ==0){
+                        return(
+                          <Row>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.profilePicArray[index]} fluid thumbnail/></Col>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.profilePicArray[index+1]} fluid thumbnail/></Col> 
+                          </Row>
+                        )
+                      }
+                      
                     })}
+{/* 
+                    {
+                      this.state.profilePicArray.forEach((p,index)=>{
+                        console.log(p+" indexx "+index)
+                        return(
+                          <Row>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={p} fluid thumbnail/></Col>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={p} fluid thumbnail/></Col> 
+                          </Row>
+                        )
+                        index=index+1
+                      })
+                    } */}
+                    
+                  </Container>
+                  <Container className="border border-primary mt-2">
+                    {this.state.coverPicArray.map((p,index)=>{
+                      console.log("indexx"+index)
+                      if(index%2 ==0){
+                        return(
+                          <Row>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.coverPicArray[index]} fluid thumbnail/></Col>
+                            <Col onClick={()=>{ this.setState({ showModal:true }) }} sm={6}><Image style={{height:'auto',width:'100%'}} src={this.state.coverPicArray[index+1]} fluid thumbnail/></Col> 
+                          </Row>
+                        )
+                      }
+                      
+                    })}
+
                     
                   </Container>                  
                    

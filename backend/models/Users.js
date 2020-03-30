@@ -17,14 +17,14 @@ const UserSchema = new Schema({
     type: String,
     required: true
   },
-  profile_pic:{
+  profile_pic:[{
     type:String,
-    default:'http://res.cloudinary.com/dn5lfusbo/image/upload/v1585307958/blog/twitter_final.png2020-03-27T11:19:17.740Z.png'
-  },
-  cover_pic:{
+    //default:'http://res.cloudinary.com/dn5lfusbo/image/upload/v1585307958/blog/twitter_final.png2020-03-27T11:19:17.740Z.png'
+  }],
+  cover_pic:[{
     type:String,
-    default:'http://res.cloudinary.com/dn5lfusbo/image/upload/v1585307958/blog/twitter_final.png2020-03-27T11:19:17.740Z.png'
-  },
+    //default:'http://res.cloudinary.com/dn5lfusbo/image/upload/v1585307958/blog/twitter_final.png2020-03-27T11:19:17.740Z.png'
+  }],
   bio:{
     type:String,
     default:''
@@ -41,6 +41,7 @@ const UserSchema = new Schema({
     type:mongoose.Schema.Types.ObjectId,
     ref:'Notification'
   }],
+ 
   date: {
     type: Date,
     default: Date.now
