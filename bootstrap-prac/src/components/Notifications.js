@@ -24,9 +24,36 @@ class Notifications extends React.Component {
       show:true,
       myNotifications:[]
     }
+    this.deleteNotif=this.deleteNotif.bind(this)
    
   }
   async componentDidMount(){
+    const myNotifications= await axios.post('http://localhost:5000/users/myNotifications',{},
+    {
+      headers:{
+        'authorization':'Bearer '+localStorage.usertoken
+      }
+    })
+    console.log(myNotifications)
+    this.setState({
+      myNotifications:myNotifications.data
+    })
+  }
+
+  async deleteNotif(e){
+    const id=e.target.id
+    console.log(id)
+    
+    await axios.post('http://localhost:5000/users/deleteNotif',{
+      notifId:id
+    },
+    {
+      headers:{
+        'authorization':'Bearer '+localStorage.usertoken
+      }
+    })
+    
+    /////Component did mount
     const myNotifications= await axios.post('http://localhost:5000/users/myNotifications',{},
     {
       headers:{
@@ -56,7 +83,7 @@ class Notifications extends React.Component {
         {this.state.myNotifications.map((n)=>{
           return (
             <>
-              <NotificationItem notif={n} />
+              <NotificationItem deleteNotif={this.deleteNotif} notif={n} />
             </>
             
           )

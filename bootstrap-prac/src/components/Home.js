@@ -16,6 +16,7 @@ import Friend from './Friend'
 import MyFilteringComponent from './MyFilteringComponent'
 import CreatePost from './CreatePost'
 import ExploreNewFriends from './ExploreNewFriends'
+import axios from 'axios'
 
 class Home extends React.Component {
   constructor(props){
@@ -39,6 +40,15 @@ class Home extends React.Component {
     this.toggleShow=this.toggleShow.bind(this)
     this.showModalFun=this.showModalFun.bind(this)
     this.handleFollow=this.handleFollow.bind(this)
+
+    this.profile_image_click=this.profile_image_click.bind(this)
+    this.cover_image_click=this.cover_image_click.bind(this)
+    
+    this.handleSubmitProfileFile = this.handleSubmitProfileFile.bind(this)
+    this.handleImagePreview = this.handleImagePreview.bind(this)
+
+    this.handleSubmitCoverFile = this.handleSubmitCoverFile.bind(this)
+    this.handleImagePreviewCover = this.handleImagePreviewCover.bind(this)
     
 
   }
@@ -60,8 +70,107 @@ class Home extends React.Component {
       email: decoded.email,
       ID:decoded._id,
       profile_pic:decoded.profile_pic,
-      bio:decoded.bio
+      cover_pic:decoded.cover_pic,
+      bio:decoded.bio,
+
+      show_profile_pic_moodle:false,
+      profile_image_file:'',
+
+      show_cover_pic_moodle:false,
+      cover_image_file:'',
       
+    })
+    
+  }
+  profile_image_click(e){
+    this.setState({
+      show_profile_pic_moodle:true
+    })
+  }
+  cover_image_click(e){
+    this.setState({
+      show_cover_pic_moodle:true
+    })
+  }
+  
+  
+
+  handleSubmitProfileFile = () => {
+    console.log('here clicked :')
+    const data = new FormData() 
+    data.append('image', this.state.profile_image_file)
+    // data.append('caption',this.state.caption)
+     
+    for (var [key, value] of data.entries()) { 
+      console.log(key, value);
+    }
+  
+    axios.post("http://localhost:5000/users/changeProfilePic", data, 
+    {
+      headers: {
+          "Authorization": "Bearer "+localStorage.usertoken,
+          "Content-type": "multipart/form-data",
+      },                    
+    }
+        )
+        .then(res => { // then print response status
+          console.log(res.data.profile_image_url)
+          
+          this.setState({
+            profile_pic:res.data.profile_image_url,
+          })
+
+        })
+
+
+            
+  }
+  handleSubmitCoverFile = () => {
+    console.log('here clicked :')
+    const data = new FormData() 
+    data.append('image', this.state.cover_image_file)
+    // data.append('caption',this.state.caption)
+     
+    for (var [key, value] of data.entries()) { 
+      console.log(key, value);
+    }
+  
+    axios.post("http://localhost:5000/users/changeCoverPic", data, 
+    {
+      headers: {
+          "Authorization": "Bearer "+localStorage.usertoken,
+          "Content-type": "multipart/form-data",
+      },                    
+    }
+        )
+        .then(res => { // then print response status
+          console.log(res.data.cover_image_url)
+          
+          this.setState({
+            cover_pic:res.data.cover_image_url,
+          })
+
+        })
+
+
+            
+  }
+
+  handleImagePreview = (e) => {
+    
+    let image_as_files = e.target.files[0];
+    
+    this.setState({
+       profile_image_file: image_as_files,
+    })
+    
+  }
+  handleImagePreviewCover = (e) => {
+    
+    let image_as_files = e.target.files[0];
+    
+    this.setState({
+       cover_image_file: image_as_files,
     })
     
   }
@@ -188,7 +297,59 @@ class Home extends React.Component {
 </div>
 {/* Toast end */}     
 
+{/* Modal for profile pic */}
+<Modal show={this.state.show_profile_pic_moodle} onHide={()=>{this.setState({ show_profile_pic_moodle:false })}}>
+        <Modal.Header closeButton>
+          <Modal.Title>Select Photo</Modal.Title>
+        </Modal.Header>
 
+
+
+        <Modal.Body>
+          
+          <Form className="text-left">
+              <div class="custom-file">
+                  <input onChange={this.handleImagePreview} type="file" class="custom-file-input" id="customFile" />
+                  <label class="custom-file-label" for="customFile">Choose file</label>
+              </div>               
+          </Form>       
+          
+        </Modal.Body>
+        <Modal.Footer>
+          
+          <Button variant="primary" onClick={this.handleSubmitProfileFile} onHide={()=>{this.setState({ show_profile_pic_moodle:false })}}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+{/* end Modal for profile pic */}
+
+{/* Modal for cover pic */}
+<Modal show={this.state.show_cover_pic_moodle} onHide={()=>{this.setState({ show_cover_pic_moodle:false })}}>
+        <Modal.Header closeButton>
+          <Modal.Title>Select Photo</Modal.Title>
+        </Modal.Header>
+
+
+
+        <Modal.Body>
+          
+          <Form className="text-left">
+              <div class="custom-file">
+                  <input onChange={this.handleImagePreviewCover} type="file" class="custom-file-input" id="customFile" />
+                  <label class="custom-file-label" for="customFile">Choose file</label>
+              </div>               
+          </Form>       
+          
+        </Modal.Body>
+        <Modal.Footer>
+          
+          <Button variant="primary" onClick={this.handleSubmitCoverFile} onHide={()=>{this.setState({ show_cover_pic_moodle:false })}}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+{/* end Modal for Cover pic */}
 
 
 {/* Modal  */}
@@ -219,8 +380,8 @@ class Home extends React.Component {
           
           <Row >
                 <Col sm={12}>
-                  <Image style={{height:'300px',width:'100%'}} src={nature} fluid thumbnail/>
-                  <Image style={{height:'200px',width:'200px',position:'absolute',top:'230px',left:'30px',zIndex:'999'}} src={this.state.profile_pic} roundedCircle fluid thumbnail/>
+                  <Image onClick={this.cover_image_click} style={{height:'300px',width:'100%'}} src={this.state.cover_pic} fluid thumbnail/>
+                  <Image onClick={this.profile_image_click} style={{height:'200px',width:'200px',position:'absolute',top:'230px',left:'30px',zIndex:'999'}} src={this.state.profile_pic} roundedCircle fluid thumbnail/>
                 </Col>
                 
           </Row>

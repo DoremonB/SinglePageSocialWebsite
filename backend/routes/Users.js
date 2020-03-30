@@ -1,3 +1,30 @@
+//   //Very Very important !!!!!!!!!!...nested quering
+
+// users.post('/getAllPostByMyFriends',checkAuth,async(req,res)=>{
+//   console.log("User id is : "+req.decoded._id)
+//   // const alldata=await (await MyFriendList.findOne({user:req.decoded._id}).populate('friends')).execPopulate()
+  
+//   //Very Very important !!!!!!!!!!...nested quering
+
+//   const alldata=await MyFriendList.
+//   findOne({user:req.decoded._id}).
+//   populate({
+//     path: 'friends',
+//     select:'email MyPosts',
+//     // Get friends of friends - populate the 'friends' array for every friend
+//     populate: {
+//       path: 'MyPosts',
+//       select:'Comments Likes',
+//       populate:{
+//         path:'Comments'
+//       }
+//     }
+//   });
+  
+
+//   return res.json({alldata})
+// })
+
 const express = require('express')
 const users = express.Router()
 const cors = require('cors')
@@ -15,13 +42,55 @@ users.use(cors())
 
 process.env.SECRET_KEY = 'secretkey'
 
+users.post('/getAllUserData',checkAuth,async(req,res)=>{
+  console.log("User id is : "+req.decoded._id)
+  const alldata=await User.find({_id:req.decoded._id}).populate({
+    path:'MyPosts',
+    populate:'Comments Likes'
+  })
+  return res.json({alldata})
+})
+
+users.post('/getAllPostByMyFriends',checkAuth,async(req,res)=>{
+  console.log("User id is : "+req.decoded._id)
+  // const alldata=await (await MyFriendList.findOne({user:req.decoded._id}).populate('friends')).execPopulate()
+  
+  //Very Very important !!!!!!!!!!...nested quering
+
+  const alldata=await MyFriendList.
+  findOne({user:req.decoded._id}).
+  populate({
+    path: 'friends',
+    select:'MyPosts',
+    
+    // Get friends of friends - populate the 'friends' array for every friend
+    populate: {
+      path: 'MyPosts',
+      // select:'Comments Likes',
+      populate:{
+        path:'Comments Likes createdBy'
+      }
+    }
+  });
+  
+
+  return res.json(alldata.friends)
+})
+
 users.post('/allposts',checkAuth,async(req,res)=>{
+  
   decoded=req.decoded
 
-  allposts=await Post.find().populate('Comments Likes createdBy').exec()
+  allposts=await Post.find().sort('-date').populate('Comments Likes createdBy').exec()
   console.log("this is all posts after population "+allposts)
 
   return res.json(allposts)
+})
+
+users.post('/myfriends',checkAuth,async(req,res)=>{
+  decoded=req.decoded
+  const myfriends=await User.findById(decoded._id).select('MyFriends')
+  return res.json(myfriends)
 })
 
 users.post('/myallposts',checkAuth,async(req,res)=>{
@@ -36,7 +105,7 @@ users.post('/myallposts',checkAuth,async(req,res)=>{
 users.post('/myNotifications',checkAuth,async(req,res)=>{
   decoded=req.decoded
 
-  allNotifications=await Notification.find({ sentTo:decoded._id })
+  allNotifications=await Notification.find({ sentTo:decoded._id }).sort('-date')
   console.log(allNotifications)
   return res.json(allNotifications)
 })
@@ -134,8 +203,9 @@ users.post('/register',async (req, res) => {
                   first_name: user.first_name,
                   last_name: user.last_name,
                   email: user.email,
-		  bio:user.bio,
-		  profile_pic:user.profile_pic
+		              bio:user.bio,
+                  profile_pic:user.profile_pic,
+                  cover_pic:user.cover_pic
                 }
                 let token = jwt.sign(payload, process.env.SECRET_KEY, {
                   expiresIn: 1440
@@ -233,11 +303,19 @@ users.post('/createPost',checkAuth,async (req, res) => {
                 Comments:[]
             })
             console.log(postData)
-                await postData.save()
+                const p=await postData.save()
+                //Now also update user's array of MyPost
+                const postlist=user.MyPosts
+                console.log("Before "+postlist)
+                postlist.push(p._id)
+                console.log("After "+postlist)
+                user.MyPosts=postlist
+                await user.save()
+
                 res.json({'status':'success'})
             }
             catch(err){
-                res.json({error:err})
+                res.json({'error':err})
             }
 
 
@@ -265,19 +343,33 @@ users.post('/createComment',checkAuth,async (req, res) => {
       _id: decoded._id
     })
 
+    const post=await Post.findById(req.body.postId).populate('Comments Likes').exec()
+
     const commentData =new Comment ({
       content: req.body.content,
-      createdBy:user._id
+      createdBy:user._id,
+      postId:post._id
     })
     console.log(commentData)
       const cmt=await commentData.save()
       console.log(cmt)
-      const p=await Post.findById(req.body.postId).populate('Comments Likes').exec()
-      await p.Comments.push(cmt)
-      await p.save()
+      
+      await post.Comments.push(cmt)
+      await post.save()
+
+      //Create Notif about the comment
+      const notificationData =new Notification ({
+        content: decoded.email +" comented ' "+ req.body.content +" ' on post with caption ' "+post.caption+" '",
+        sentBy:decoded._id,
+        sentTo:post.createdBy,
+        notificationType:3,//3->comment
+        postId:post._id
+      })
+      console.log(notificationData)
+        await notificationData.save()
       
 
-      return res.json({p})
+      return res.json({post})
     //This is just temporariy arrangement
   
   
@@ -430,6 +522,13 @@ _id: decoded._id
         await mfl.friends.push(req.body.friendThisUserId)
         await mfl.save()
 
+        myfriendlist=user.MyFriends
+        myfriendlist.push(req.body.friendThisUserId)
+        user.MyFriends=myfriendlist
+        const u=await user.save()
+        console.log("After updating MyFriends array for user : "+u)
+
+
         //Create Notification in receiver's account
         const notificationData =new Notification ({
             content: user.email +" has added you as friend.",
@@ -454,7 +553,7 @@ _id: decoded._id
 })
 
 users.post('/removeFriend',checkAuth, (req, res) => {
-    //pass it without bearer in this case.....jwt.verify takes token without keyword 'Bearer '
+    
     decoded=req.decoded
     User.findOne({
     _id: decoded._id
@@ -462,17 +561,26 @@ users.post('/removeFriend',checkAuth, (req, res) => {
     
     .then(async (user) => {
         if (user) {
-            console.log(user)
-            const mfl=await MyFriendList.findOne({ user:decoded._id })
-            console.log(mfl)
-            const index= mfl.friends.indexOf(req.body.friendThisUserId)
+            // console.log(user)
+            var mfl=await MyFriendList.findOne({ user:decoded._id })
+            // console.log(mfl)
+            var index= mfl.friends.indexOf(req.body.friendThisUserId)
             if(index>-1){
                 await mfl.friends.splice(index,1)
             }
             await mfl.save()
 
-            
-    
+            var myfriendlist=user.MyFriends
+            index=myfriendlist.indexOf(req.body.friendThisUserId)
+            console.log("index is :"+index)
+            if(index>-1){
+              
+              myfriendlist.splice(index,1)
+            }
+            console.log("index is :"+index+"  user.MyFriends is :"+user.MyFriends)
+            user.MyFriends=myfriendlist
+            user.save()
+
             
         res.json({"message":"success"})
         } else {
@@ -485,7 +593,7 @@ users.post('/removeFriend',checkAuth, (req, res) => {
     })
 
 users.post('/like',checkAuth,async (req,res,next)=>{
-  console.log('req.body : '+req.body)  
+  
   decoded=req.decoded
     try{
     const user=await User.findOne({
@@ -549,6 +657,15 @@ users.post('/like',checkAuth,async (req,res,next)=>{
       post.Likes=li
       // console.log(li)
       await post.save()
+
+      const resultOfNotifDelete=await Notification.deleteOne({
+        sentBy:decoded._id,
+        sentTo:post.createdBy,
+        notificationType:2,//like->2
+        postId:post._id
+      })
+      console.log("resultOfNotifDelete : "+resultOfNotifDelete)
+      res.json({'status':'success'})
     }
     else{
       // console.log("inside else")
@@ -556,9 +673,22 @@ users.post('/like',checkAuth,async (req,res,next)=>{
         createdBy:user._id
       })
       const l=await like.save()
-      // console.log(l)
       await post.Likes.push(l._id)
       await post.save()
+
+      //create Notification
+      const notificationData =new Notification ({
+        content: decoded.email +" liked your post with caption ' "+post.caption+" '",
+        sentBy:decoded._id,
+        sentTo:post.createdBy,
+        notificationType:2,
+        postId:post._id
+      })
+      console.log(notificationData)
+        await notificationData.save()
+
+      
+        res.json({'status':'success'})
     }
 
 
@@ -572,5 +702,158 @@ users.post('/like',checkAuth,async (req,res,next)=>{
         return res.send(err)
     }
 })
+
+users.post('/deleteNotif',checkAuth,async(req,res,next)=>{
+  const resultOfNotifDelete=await Notification.deleteOne({
+    _id:req.body.notifId,
+  })
+  console.log("resultOfNotifDelete : "+resultOfNotifDelete)
+  res.json({'status':'success'})
+})
+
+users.post('/changeProfilePic',checkAuth,async (req, res) => {
+  
+  decoded=req.decoded
+  const user=await User.findOne({
+    _id: decoded._id
+  })
+  
+  if(user){
+      try{
+    const upload = multer({ storage }).single('image')
+    upload(req, res, function(err) {
+      if (err) {
+        return res.send(err)
+      }
+      console.log('file uploaded to server')
+      console.log(req.file)
+  
+      // SEND FILE TO CLOUDINARY
+      const cloudinary = require('cloudinary').v2
+      cloudinary.config({
+        cloud_name: 'dn5lfusbo',
+        api_key: '763614237956682',
+        api_secret: 'qS4vG8wGgCbQrzbFaQSO8AH0qBk'
+      })
+      
+      const path = req.file.path
+      const uniqueFilename = req.file.filename+new Date().toISOString()
+  
+      cloudinary.uploader.upload(
+        path,
+        { public_id: `blog/${uniqueFilename}`, tags: `blog` }, // directory and tags are optional
+        async function(err, image) {
+          if (err) return res.send(err)
+          console.log('file uploaded to Cloudinary')
+          // remove file from server
+          const fs = require('fs')
+          fs.unlinkSync(path)
+          // return image details
+          console.log(image.url)
+        //   res.json(image)
+            
+        try{
+           
+            
+            user.profile_pic=image.url
+            await user.save()
+                
+
+                res.json({'status':'success','profile_image_url':user.profile_pic})
+            }
+            catch(err){
+                res.json({'error':err})
+            }
+
+
+        }
+      )
+    })
+  
+
+
+        }catch(err){
+            res.send(err)
+        }
+    }
+    else{
+        return res.send('no user')
+    }
+
+    
+})
+
+users.post('/changeCoverPic',checkAuth,async (req, res) => {
+  
+  decoded=req.decoded
+  const user=await User.findOne({
+    _id: decoded._id
+  })
+  
+  if(user){
+      try{
+    const upload = multer({ storage }).single('image')
+    upload(req, res, function(err) {
+      if (err) {
+        return res.send(err)
+      }
+      console.log('file uploaded to server')
+      console.log(req.file)
+  
+      // SEND FILE TO CLOUDINARY
+      const cloudinary = require('cloudinary').v2
+      cloudinary.config({
+        cloud_name: 'dn5lfusbo',
+        api_key: '763614237956682',
+        api_secret: 'qS4vG8wGgCbQrzbFaQSO8AH0qBk'
+      })
+      
+      const path = req.file.path
+      const uniqueFilename = req.file.filename+new Date().toISOString()
+  
+      cloudinary.uploader.upload(
+        path,
+        { public_id: `blog/${uniqueFilename}`, tags: `blog` }, // directory and tags are optional
+        async function(err, image) {
+          if (err) return res.send(err)
+          console.log('file uploaded to Cloudinary')
+          // remove file from server
+          const fs = require('fs')
+          fs.unlinkSync(path)
+          // return image details
+          console.log(image.url)
+        //   res.json(image)
+            
+        try{
+           
+            
+            user.cover_pic=image.url
+            await user.save()
+                
+
+                res.json({'status':'success','cover_image_url':user.cover_pic})
+            }
+            catch(err){
+                res.json({'error':err})
+            }
+
+
+        }
+      )
+    })
+  
+
+
+        }catch(err){
+            res.send(err)
+        }
+    }
+    else{
+        return res.send('no user')
+    }
+
+    
+})
+
 
 module.exports = users

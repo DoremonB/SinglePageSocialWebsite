@@ -21,8 +21,8 @@ class NotifcationItem extends React.Component {
     return (
         <>
         
-            <Row className="border border-primary m-2">
-                <Col sm={3} >
+            <Row className="border border-primary m-2" style={{display: 'flex',alignItems: 'center'}}>
+                <Col sm={2} >
                     <Row sm={9}>
                       <Col sm={10}>
                         <Image style={{height:'auto',width:'100%'}} src={nature} roundedCircle />
@@ -37,9 +37,17 @@ class NotifcationItem extends React.Component {
                     
 
                 </Col>
-                <Col sm={9} >
+                <Col sm={8} >
                     <div style={{overflow:"scroll",height:"100px"}}>
-                        <p>asaaaaas123asaaaaas123asaaaaas123 {this.props.notif.content} th Notifcations</p>
+                        <p>{this.props.notif.content}</p>
+                    </div>
+                </Col>
+                <Col  sm={2} >
+                    <div>
+                    
+                    <Button id={this.props.notif._id} onClick={this.props.deleteNotif} style={{verticalAlign:'middle'}} variant="danger">
+                        X
+                    </Button>
                     </div>
                 </Col>
             

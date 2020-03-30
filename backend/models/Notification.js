@@ -18,8 +18,13 @@ const NotificationSchema = new Schema({
     required: true
   },
   notificationType:{
-      type:Number,
+      type:Number,//2->like
       required:true
+  },
+  postId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'Post',
+    required: false
   },
   date: {
     type: Date,
