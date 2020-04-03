@@ -6,20 +6,20 @@
   
 //   //Very Very important !!!!!!!!!!...nested quering
 
-//   const alldata=await MyFriendList.
-//   findOne({user:req.decoded._id}).
-//   populate({
-//     path: 'friends',
-//     select:'email MyPosts',
-//     // Get friends of friends - populate the 'friends' array for every friend
-//     populate: {
-//       path: 'MyPosts',
-//       select:'Comments Likes',
-//       populate:{
-//         path:'Comments'
-//       }
-//     }
-//   });
+  // const alldata=await MyFriendList.
+  // findOne({user:req.decoded._id}).
+  // populate({
+  //   path: 'friends',
+  //   select:'email MyPosts',
+  //   // Get friends of friends - populate the 'friends' array for every friend
+  //   populate: {
+  //     path: 'MyPosts',
+  //     select:'Comments Likes',
+  //     populate:{
+  //       path:'Comments'
+  //     }
+  //   }
+  // });
   
 
 //   return res.json({alldata})
@@ -57,29 +57,65 @@ users.post('/currentUser',checkAuth,async(req,res,next)=>{
 })
 
 users.post('/getAllPostByMyFriends',checkAuth,async(req,res)=>{
-  console.log("User id is : "+req.decoded._id)
-  // const alldata=await (await MyFriendList.findOne({user:req.decoded._id}).populate('friends')).execPopulate()
+  // console.log("User id is : "+req.decoded._id)
+  // // const alldata=await (await MyFriendList.findOne({user:req.decoded._id}).populate('friends')).execPopulate()
   
-  //Very Very important !!!!!!!!!!...nested quering
+  // //Very Very important !!!!!!!!!!...nested quering
 
-  const alldata=await MyFriendList.
-  findOne({user:req.decoded._id}).
-  populate({
-    path: 'friends',
-    select:'MyPosts',
+  // const alldata=await MyFriendList.
+  // findOne({user:req.decoded._id}).
+  // populate({
+  //   path: 'friends',
+  //   select:'MyPosts',
     
-    // Get friends of friends - populate the 'friends' array for every friend
-    populate: {
-      path: 'MyPosts',
-      // select:'Comments Likes',
-      populate:{
-        path:'Comments Likes createdBy'
+  //   // Get friends of friends - populate the 'friends' array for every friend
+  //   populate: {
+  //     path: 'MyPosts',
+  //     // select:'Comments Likes',
+  //     populate:{
+  //       path:'Comments Likes createdBy'
+  //     }
+  //   }
+  // });
+
+  const u=await User.findById(req.decoded._id)
+  li=u.MyFriends
+  
+
+  Post.find()
+  .where('createdBy')
+  .in(li)
+  .sort('-date')
+  // .populate('Likes Comments createdBy')
+
+  .populate(
+    [
+      { path:'Likes' },
+      { path:'createdBy'},
+      {
+        path:'Comments',
+        populate:{
+          path:'createdBy',
+          select:'_id first_name profile_pic'
+          // populate:'profile_pic'
+        }
       }
-    }
+    ]
+  )
+
+
+  .exec(function (err, records) {
+    //make magic happen
+    console.log("records are :"+records)
+    console.log("records are ####:"+records[0].Comments[1].createdBy.profile_pic[records[0].Comments[1].createdBy.profile_pic.length-1])
+    console.log("records length is :"+records.length)
+
+    return res.json(records)
   });
   
 
-  return res.json(alldata.friends)
+  // return res.json(alldata.friends)
+  
 })
 
 users.post('/allposts',checkAuth,async(req,res)=>{
@@ -101,7 +137,23 @@ users.post('/myfriends',checkAuth,async(req,res)=>{
 users.post('/myallposts',checkAuth,async(req,res)=>{
   decoded=req.decoded
 
-  allposts=await Post.find({ createdBy:decoded._id }).populate('Comments Likes createdBy').exec()
+  allposts=await Post.find({ createdBy:decoded._id }).sort('-date')
+  // .populate('Comments Likes createdBy')
+  .populate(
+    [
+      { path:'Likes' },
+      { path:'createdBy'},
+      {
+        path:'Comments',
+        populate:{
+          path:'createdBy',
+          select:'_id first_name profile_pic'
+          // populate:'profile_pic'
+        }
+      }
+    ]
+  )
+  .exec()
   // console.log(allposts)
   // const p=await Post.findById(req.body.postId).populate('Comments Likes').exec()
   return res.json(allposts)
@@ -125,26 +177,46 @@ users.post('/allusers',checkAuth,async(req,res)=>{
 users.post('/allusersmyfriends',checkAuth,async(req,res)=>{
   console.log("entered allusersmyfriends")
 
-  decoded=req.decoded
-  const user=await User.findOne({
-    _id: decoded._id
-  })
-
-  fl=await MyFriendList.findOne({user:decoded._id})
+  const user=await User.findById(req.decoded._id)
+  let li=user.MyFriends
+  console.log(li)
   
-  lis=[]
-  // fl.friends.map(async (i)=>{
-  //   u=await User.findById(i)
-  //   console.log(i+" #  "+u)
-  // })
-  for(var i=0;i<fl.friends.length;i++){
-    u=await User.findById(fl.friends[i])
-    lis.push(u)
-  }
 
-  // const allusersmyfriends=fl.friends
-  console.log(lis)
-  return res.json(lis)
+  User.find()
+  .where('_id')
+  .in(li)
+  .exec(function (err, records) {
+    //make magic happen
+    console.log("records are :"+records)
+    
+    console.log("records length is :"+records.length)
+
+    return res.json(records)
+  });
+
+  
+
+
+  // decoded=req.decoded
+  // const user=await User.findOne({
+  //   _id: decoded._id
+  // })
+
+  // fl=await MyFriendList.findOne({user:decoded._id})
+  
+  // lis=[]
+  // // fl.friends.map(async (i)=>{
+  // //   u=await User.findById(i)
+  // //   console.log(i+" #  "+u)
+  // // })
+  // for(var i=0;i<fl.friends.length;i++){
+  //   u=await User.findById(fl.friends[i])
+  //   lis.push(u)
+  // }
+
+  // // const allusersmyfriends=fl.friends
+  // console.log(lis)
+  // return res.json(lis)
 })
 
 users.post('/register',async (req, res) => {
@@ -181,7 +253,7 @@ users.post('/register',async (req, res) => {
                 
                 
                 //
-                res.json({ status: userData.email + 'Registered!' })
+                res.json({ status: userData.email + ' Registered!' })
               }
               catch(err){
                 res.send('error: ' + err)
@@ -280,9 +352,9 @@ users.post('/createPost',checkAuth,async (req, res) => {
       // SEND FILE TO CLOUDINARY
       const cloudinary = require('cloudinary').v2
       cloudinary.config({
-        cloud_name: 'dn5lfusbo',
-        api_key: '763614237956682',
-        api_secret: 'qS4vG8wGgCbQrzbFaQSO8AH0qBk'
+        cloud_name: process.env.CLOUD_NAME,
+        api_key: process.env.API_KEY,
+        api_secret: process.env.API_SECRET
       })
       
       const path = req.file.path
@@ -343,6 +415,54 @@ users.post('/createPost',checkAuth,async (req, res) => {
     
 })
 
+users.post('/createStatusPost',checkAuth,async (req, res) => {
+  
+  decoded=req.decoded
+  const user=await User.findOne({
+    _id: decoded._id
+  })
+  
+  if(user){
+      try{
+    
+            const postData =new Post ({
+                caption: req.body.content,
+                image_url: '',
+                createdBy:user._id,
+                Likes:[],
+                Comments:[]
+            })
+            console.log(postData)
+                const p=await postData.save()
+                //Now also update user's array of MyPost
+                const postlist=user.MyPosts
+                console.log("Before "+postlist)
+                postlist.push(p._id)
+                console.log("After "+postlist)
+                user.MyPosts=postlist
+                const u=await user.save()
+                console.log('status post result backend :'+u)
+
+                res.json({'status':'success'})
+            }
+            catch(err){
+                res.json({'error':err})
+            }
+
+
+        }
+      
+    
+  
+
+    
+    else{
+        return res.send('no user')
+    }
+
+    
+})
+
 users.post('/createComment',checkAuth,async (req, res) => {
   
     decoded=req.decoded
@@ -350,7 +470,25 @@ users.post('/createComment',checkAuth,async (req, res) => {
       _id: decoded._id
     })
 
-    const post=await Post.findById(req.body.postId).populate('Comments Likes').exec()
+    const post=await Post.findOne({_id:req.body.postId})
+    // .populate('Likes createdBy Comments')
+    // .populate(
+    //   [
+    //     { path:'Likes' },
+    //     { path:'createdBy'},
+    //     {
+    //       path:'Comments',
+    //       populate:{
+    //         path:'createdBy',
+    //         select:'_id first_name profile_pic'
+    //         // populate:'profile_pic'
+    //       }
+    //     }
+    //   ]
+    // )
+    // .exec()
+
+    
 
     const commentData =new Comment ({
       content: req.body.content,
@@ -359,10 +497,9 @@ users.post('/createComment',checkAuth,async (req, res) => {
     })
     console.log(commentData)
       const cmt=await commentData.save()
-      console.log(cmt)
       
       await post.Comments.push(cmt)
-      await post.save()
+      const p=await post.save()
 
       //Create Notif about the comment
       const notificationData =new Notification ({
@@ -374,9 +511,29 @@ users.post('/createComment',checkAuth,async (req, res) => {
       })
       console.log(notificationData)
         await notificationData.save()
+
+
+        ////get updated post it......dont populate it before saving....because the lastest saved wont be pulated den
+        const postfinal=await Post.findOne({_id:req.body.postId})
+        // .populate('Likes createdBy Comments')
+        .populate(
+          [
+            { path:'Likes' },
+            { path:'createdBy'},
+            {
+              path:'Comments',
+              populate:{
+                path:'createdBy',
+                select:'_id first_name profile_pic'
+                // populate:'profile_pic'
+              }
+            }
+          ]
+        )
+        .exec()
       
 
-      return res.json({post})
+      return res.json({status:'success',post:postfinal})
     //This is just temporariy arrangement
   
   
@@ -606,64 +763,98 @@ users.post('/like',checkAuth,async (req,res,next)=>{
     const user=await User.findOne({
     _id: decoded._id
     })
-    console.log("like:user._id :"+user._id)
-    console.log("req.body.postId : "+req.body.postId)
-    const post=await Post.findOne({_id:req.body.postId}).populate('Comments Likes').exec()
-    console.log("like:post_id :"+post._id)
-    console.log(post)
+    
+    // console.log("like:user._id :"+user._id)
+    // console.log("req.body.postId : "+req.body.postId)
+    const post=await Post.findOne({_id:req.body.postId})
+    // .populate('Likes createdBy Comments')
+    .populate(
+      [
+        { path:'Likes' },
+        { path:'createdBy'},
+        {
+          path:'Comments',
+          populate:{
+            path:'createdBy',
+            select:'_id first_name profile_pic'
+            // populate:'profile_pic'
+          }
+        }
+      ]
+    )
+    .exec()
+    // console.log("like:post_id :"+post._id)
+    // console.log(post)
 
-
+    
 
     listOfLikes=post.Likes
-    // console.log("listOfLikes "+listOfLikes)
+    console.log("listOfLikes "+listOfLikes)
 
     let alreadyLiked=0;
     let likedId=''
     let likeIndex=-1
     let req_like=null
-    // listOfLikes.map((like,currentIndex)=>{
-    //   if(like.createdBy ===user._id){
-    //     alreadyLiked=1;
-    //     likedId=like._id
-    //     likeIndex=currentIndex
-    //     req_like=like
-    //     break;
+
+    //testing
+    // let zalreadyLiked=0;
+    // let zlikedId=''
+    // let zlikeIndex=-1
+    // let zreq_like=null
+    // listOfLikes.some((obj,index)=>{
+    //   if(obj.createdBy == user._id){
+        
+    //     console.log("%qaz "+decoded._id+" "+obj.createdBy+" % "+user._id)
+    //     likeIndex=index
+    //     alreadyLiked=1
+    //     likedId=obj._id
+    //     req_like=obj
+    //     return
     //   }
+    //   return obj.createdBy == user._id
     // })
+    
+    
 
     for(var i=0;i<listOfLikes.length;i++){
-      // console.log(listOfLikes[i].createdBy.toString()+ "    ###    "+user._id.toString()+"   length: "+listOfLikes.length.toString())
+      console.log("inside loop "+i)
       if(listOfLikes[i].createdBy.toString() == user._id.toString()){
-
         alreadyLiked=1;
-        
         likedId=listOfLikes[i]._id
-        
         likeIndex=i
-        
         req_like=listOfLikes[i]
-        // console.log("inside for loop if "+likedId+" "+likeIndex+" "+req_like)
         break;
       }
-      
     }
-    // console.log('outside for loop')
+    
 
+    // console.log('already like123 :'+alreadyLiked+" "+zalreadyLiked)
+    // console.log('likeId like123 :'+likedId+" "+zlikedId)
+    // console.log('like index like123 :'+likeIndex+" "+zlikeIndex)
+    
 
+    console.log("already liked :"+alreadyLiked)
     if(alreadyLiked===1){
-      // console.log('inside if')
-      const i=listOfLikes.indexOf(req_like)
-      // console.log('value of i is : '+i)
+      
+      
+      // const i=listOfLikes.indexOf(req_like)
+      const i=likeIndex
       if(i>-1){
         listOfLikes.splice(i,1)
       }
-      li=[]
-      for(var k=0;k<listOfLikes.length;k++){
-        li.push(listOfLikes[i]._id)
-      }
+      
+
+      let li=listOfLikes.map(a=>a._id)
+      
+      // li=[]
+      // console.log('inside here '+listOfLikes)
+      // for(var k=0;k<listOfLikes.length;k++){
+      //   li.push(listOfLikes[i]._id)
+      //   console.log("arrmap :"+li[i]+"-"+zli[i])
+      // }
       post.Likes=li
-      // console.log(li)
-      await post.save()
+      
+      let p=await post.save()
 
       const resultOfNotifDelete=await Notification.deleteOne({
         sentBy:decoded._id,
@@ -671,17 +862,17 @@ users.post('/like',checkAuth,async (req,res,next)=>{
         notificationType:2,//like->2
         postId:post._id
       })
-      console.log("resultOfNotifDelete : "+resultOfNotifDelete)
-      res.json({'status':'success'})
+      
+      res.json({status:'success',post:p})
     }
     else{
-      // console.log("inside else")
+      
       const like=new Like({
         createdBy:user._id
       })
       const l=await like.save()
       await post.Likes.push(l._id)
-      await post.save()
+      let p=await post.save()
 
       //create Notification
       const notificationData =new Notification ({
@@ -695,15 +886,12 @@ users.post('/like',checkAuth,async (req,res,next)=>{
         await notificationData.save()
 
       
-        res.json({'status':'success'})
+        res.json({status:'success',post:p})
     }
 
 
 
-    //const p=await Post.findById(req.body.postId).populate('Comments Likes').exec()
-    // const p=await Post.find()
-
-    return res.send("like successful")
+    // return res.send("like successful")
     }
     catch(err){
         return res.send(err)
@@ -862,6 +1050,17 @@ users.post('/changeCoverPic',checkAuth,async (req, res) => {
     }
 
     
+})
+
+users.post('/updateProfile',checkAuth,async(req,res,next)=>{
+  console.log(req.body.first_name+" --- "+req.body.last_name+" --- "+req.body.bio)
+  const user=await User.findById(req.decoded._id)
+  user.first_name=req.body.first_name
+  user.last_name=req.body.last_name
+  user.bio=req.body.bio
+  const u=await user.save()
+  
+  res.json({'status':'success',user:u})
 })
 
 

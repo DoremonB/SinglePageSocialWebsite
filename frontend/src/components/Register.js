@@ -14,11 +14,15 @@ import TimelineInsideProfile from './TimelineInsideProfile'
 import Friend from './Friend'
 import MyFilteringComponent from './MyFilteringComponent'
 import axios from 'axios'
+
+import { register } from '../functions/funtions' 
+
 class Register extends React.Component {
   constructor(props){
     super(props)
     this.state={
-      username:'',
+      firstname:'',
+      lastname:'',
       password:'',
       confirm_password:'',
       email:''
@@ -30,20 +34,31 @@ class Register extends React.Component {
   }
   
   async handleSubmit(e){
-    console.log(this.state.username +"  "+this.state.email +"  "+this.state.password +"  "+this.state.confirm_password)
     
-    const response=await axios
-    .post('http://localhost:5000/users/register',{
-      first_name:this.state.username,
-      last_name:this.state.username,
+    
+    // const response=await axios
+    // .post('http://localhost:5000/users/register',{
+    //   first_name:this.state.username,
+    //   last_name:this.state.username,
+    //   email:this.state.email,
+    //   password:this.state.password
+    // })
+
+    let data={
+      first_name:this.state.firstname,
+      last_name:this.state.lastname,
       email:this.state.email,
       password:this.state.password
-    })
-
-    console.log(response)
-
-
+    }
+    const response=await register(data)
+    
     this.props.history.push(`/login`)
+    
+
+    // console.log(response)
+
+
+    // this.props.history.push(`/login`)
   }
   
   
@@ -51,7 +66,7 @@ class Register extends React.Component {
     this.setState({
         [e.target.name] : e.target.value
     })
-    console.log(this.state.username +"  "+this.state.email +"  "+this.state.password +"  "+this.state.confirm_password)
+    console.log(this.state.firstname +"  "+this.state.email +"  "+this.state.password +"  "+this.state.confirm_password)
   }
 
   render() {
@@ -63,15 +78,19 @@ class Register extends React.Component {
 <Form onSubmit={this.handleSubmit} style={{width:"60%"}} className="container text-left mt-2">
 
 <Form.Group >
-    <Form.Label className="text-left">Username</Form.Label>
-    <Form.Control name="username" onChange={this.handleChange} type="text" placeholder="Enter username" />
-    <Form.Text className="text-muted">
-      Username should be unique:)
-    </Form.Text>
+    <Form.Label className="text-left">First Name</Form.Label>
+    <Form.Control name="firstname" onChange={this.handleChange} type="text" placeholder="Enter username" />
+    
+  </Form.Group>
+
+  <Form.Group >
+    <Form.Label className="text-left">Last Name</Form.Label>
+    <Form.Control name="lastname" onChange={this.handleChange} type="text" placeholder="Enter username" />
+    
   </Form.Group>
 
   <Form.Group  controlId="formBasicEmail">
-    <Form.Label className="text-left">Email address</Form.Label>
+    <Form.Label className="text-left">Email</Form.Label>
     <Form.Control name="email" onChange={this.handleChange} type="email" placeholder="Enter email" />
     <Form.Text className="text-muted">
       We'll never share your email with anyone else.
@@ -84,13 +103,7 @@ class Register extends React.Component {
   </Form.Group>
   
 
-  <Form.Group>
-    <Form.Label>Confirm Password</Form.Label>
-    <Form.Control name="confirm_password" onChange={this.handleChange} type="password" placeholder="Confirm Password" />
-  </Form.Group>
-  <Form.Group controlId="formBasicCheckbox">
-    <Form.Check type="checkbox" label="Check me out" />
-  </Form.Group>
+  
 
   <Button onClick={this.handleSubmit} variant="primary">
     Submit

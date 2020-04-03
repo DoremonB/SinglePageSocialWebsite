@@ -11,6 +11,7 @@ import CardComponent from './CardComponent'
 import MyFilteringComponent from './MyFilteringComponent'
 import nature from '../images/nature.jpeg'
 import axios from 'axios'
+import { allusersFun, allusersmyfriendsFun,addFriendFun,removeFriendFun } from '../functions/funtions'
 
 class ExploreNewFriend extends React.Component {
   constructor(props){
@@ -18,7 +19,8 @@ class ExploreNewFriend extends React.Component {
     this.state={
         myDisplayList:[],
         myCompleteList:[],
-        myfriends:[]
+        myfriends:[],
+        Loading:true,
     }
     this.handleAdd=this.handleAdd.bind(this)
     this.handleRemove=this.handleRemove.bind(this)
@@ -26,27 +28,32 @@ class ExploreNewFriend extends React.Component {
 
   async componentDidMount() {
     console.log("inside didmount explorenewfirends")
-    const allusers=await axios.post('http://localhost:5000/users/allusers',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  //   const allusers=await axios.post('http://localhost:5000/users/allusers',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
 
-  const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  const allusers=await allusersFun()
+
+  // const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+
+  const myfriends=await allusersmyfriendsFun()
 
     console.log("myfriends : "+myfriends.data)
     this.setState({
         myCompleteList:allusers.data,
         myDisplayList:allusers.data,
-        myfriends:myfriends.data
+        myfriends:myfriends.data,
+        Loading:false
     })
     
   }
@@ -64,38 +71,45 @@ class ExploreNewFriend extends React.Component {
     };
     
 
-    const response=await axios.post('http://localhost:5000/users/addFriend',bodyParameters,
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken,
-        'Content-Type': 'application/json',
-      }
-    }
-    )
+    // const response=await axios.post('http://localhost:5000/users/addFriend',bodyParameters,
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken,
+    //     'Content-Type': 'application/json',
+    //   }
+    // }
+    // )
+    const response=await addFriendFun(bodyParameters)
     console.log(response.data)
 
     //Now we need to set new data so copy pasing compinent didmount code here
-    const allusers=await axios.post('http://localhost:5000/users/allusers',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  //   const allusers=await axios.post('http://localhost:5000/users/allusers',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
 
-  const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+    this.setState({ Loading:true })
+  const allusers=await allusersFun()
+
+  // const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+
+  const myfriends=await allusersmyfriendsFun()
 
     console.log("myfriends : "+myfriends.data)
     this.setState({
         myCompleteList:allusers.data,
         myDisplayList:allusers.data,
-        myfriends:myfriends.data
+        myfriends:myfriends.data,
+        Loading:false
     })
 
 
@@ -109,43 +123,49 @@ class ExploreNewFriend extends React.Component {
     };
     
 
-    const response=await axios.post('http://localhost:5000/users/removeFriend',bodyParameters,
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken,
-        'Content-Type': 'application/json',
-      }
-    }
-    )
+    // const response=await axios.post('http://localhost:5000/users/removeFriend',bodyParameters,
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken,
+    //     'Content-Type': 'application/json',
+    //   }
+    // }
+    // )
+    this.setState({ Loading:true })
+    const response=await removeFriendFun(bodyParameters)
     console.log(response.data)
 
-    const allusers=await axios.post('http://localhost:5000/users/allusers',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  //   const allusers=await axios.post('http://localhost:5000/users/allusers',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+  const allusers=await allusersFun()
 
-  const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  // const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+  const myfriends=await allusersmyfriendsFun()
 
     console.log("myfriends : "+myfriends.data)
     this.setState({
         myCompleteList:allusers.data,
         myDisplayList:allusers.data,
-        myfriends:myfriends.data
+        myfriends:myfriends.data,
+        Loading:false
     })
 
 
   }
 
   filterList = (event) => {
+    this.setState({ Loading:true })
     let myDisplayList = this.state.myCompleteList.filter((item) => {
       if(item.email.toLowerCase().search(event.target.value.toLowerCase()) !== -1){
         console.log('filterhere :'+item.email)
@@ -157,12 +177,17 @@ class ExploreNewFriend extends React.Component {
       //     this.setState({myDisplayList: []});
       // }
       // else{
-          this.setState({myDisplayList: myDisplayList});
+          this.setState({myDisplayList: myDisplayList,Loading:false});
       // }
     
   }
  
   render() {
+    if(this.state.Loading){
+      return(
+          <div class="loader"></div>
+      )
+    }
     
     if(this.props.typeTab=="ExploreNewFriends"){
       return (
@@ -231,7 +256,7 @@ class ExploreNewFriend extends React.Component {
           if(this.state.myfriends.some(f=>f._id ===n._id)==1){
             return <Row style={{display: 'flex',alignItems: 'center',overflow:'hidden'}} className="border border-primary m-2">
                 <Col sm={2} >
-                    <Image style={{height:'auto',width:'100%',margin:'0.5rem'}} src={n.profile_pic} roundedCircle />
+                    <Image style={{height:'auto',width:'100%',margin:'0.5rem'}} src={n.profile_pic[n.profile_pic.length-1]} roundedCircle />
                 </Col>
                 <Col sm={8} >
                     <Card style={{margin:'0.5rem',textAlign:'left'}}>

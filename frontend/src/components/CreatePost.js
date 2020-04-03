@@ -4,6 +4,7 @@ import { Toast,Card,Button,Tooltip,OverlayTrigger,Form,Row,Col, Container,Modal,
 import { Redirect } from 'react-router';
 import props from 'prop-types';
 import axios from 'axios'
+import { createPostFun } from '../functions/funtions'
 
 class CreatePost extends Component {
   constructor(props) {
@@ -31,7 +32,7 @@ captionChange(e) {
   this.setState({ caption: e.target.value })
 }
 
-handleSubmitFile = () => {
+async handleSubmitFile (){
   console.log('here clicked')
   const data = new FormData() 
   data.append('image', this.state.image_file)
@@ -41,23 +42,25 @@ handleSubmitFile = () => {
     console.log(key, value);
   }
 
-  axios.post("http://localhost:5000/users/createPost", data, 
-  {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  }
-      )
-      .then(res => { // then print response status
+  const res=await createPostFun(data)
+
+  // const res=await axios.post("http://localhost:5000/users/createPost", data, 
+  // {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+      // .then(res => { // then print response status
         console.log(res.data)
-      })
+      // })
   
 }
+
 handleImagePreview = (e) => {
   let image_as_base64 = URL.createObjectURL(e.target.files[0])
-  
   let image_as_files = e.target.files[0];
+
   console.log(this.state.image_preview)
   this.setState({
       image_preview: image_as_base64,
@@ -98,12 +101,7 @@ handleImagePreview = (e) => {
         {/* image preview */}
         
             <br></br>
-        {/* <img className="mt-2" style={{width:"100%",height:"300px"}}  src={this.state.image_preview} alt="image_preview"/> */}
-            {/* image input field */}
-            <br></br>
-            
-                            
-            <br></br>
+       
             
             
   

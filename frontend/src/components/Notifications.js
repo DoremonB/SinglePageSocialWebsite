@@ -14,6 +14,7 @@ import nature from '../images/nature.jpeg'
 
 import NotificationItem from './NotifcationItem'
 import axios from 'axios';
+import { myNotificationsFun,deleteNotifFun } from '../functions/funtions';
 
 class Notifications extends React.Component {
   constructor(props){
@@ -22,51 +23,62 @@ class Notifications extends React.Component {
     this.state={
       comment_content:'',
       show:true,
-      myNotifications:[]
+      myNotifications:[],
+      Loading:true
     }
     this.deleteNotif=this.deleteNotif.bind(this)
    
   }
   async componentDidMount(){
-    const myNotifications= await axios.post('http://localhost:5000/users/myNotifications',{},
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken
-      }
-    })
+    // const myNotifications= await axios.post('http://localhost:5000/users/myNotifications',{},
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken
+    //   }
+    // })
+
+    const myNotifications=await myNotificationsFun() 
+
     console.log(myNotifications)
     this.setState({
-      myNotifications:myNotifications.data
+      myNotifications:myNotifications.data,
+      Loading:false
     })
+    
   }
 
   async deleteNotif(e){
     const id=e.target.id
     console.log(id)
+
+    this.setState({ Loading:true })
+    await deleteNotifFun({notifId:id}) 
     
-    await axios.post('http://localhost:5000/users/deleteNotif',{
-      notifId:id
-    },
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken
-      }
-    })
+    // await axios.post('http://localhost:5000/users/deleteNotif',{
+    //   notifId:id
+    // },
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken
+    //   }
+    // })
     
     /////Component did mount
-    const myNotifications= await axios.post('http://localhost:5000/users/myNotifications',{},
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken
-      }
-    })
+    const myNotifications=await myNotificationsFun() 
+
     console.log(myNotifications)
     this.setState({
-      myNotifications:myNotifications.data
+      myNotifications:myNotifications.data,
+      Loading:false
     })
   }
   
   render() {
+    if(this.state.Loading){
+      return(
+          <div class="loader"></div>
+      )
+    }
     return (
       
        
@@ -74,7 +86,7 @@ class Notifications extends React.Component {
 
 
       <div>
-    <Modal show={this.state.show} onHide={()=>{this.setState({ show:false })}}>
+    <Modal show={this.state.show} onHide={()=>{this.props.history.push(`/home`)}}>
         <Modal.Header closeButton>
           <Modal.Title>Modal heading</Modal.Title>
         </Modal.Header>
@@ -91,14 +103,7 @@ class Notifications extends React.Component {
 
 
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={()=>{this.setState({ show:false })}}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={()=>{this.setState({ show:false })}}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
+        
       </Modal>          
         
       </div>

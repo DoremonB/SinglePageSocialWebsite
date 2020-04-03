@@ -17,6 +17,9 @@ import MyFilteringComponent from './MyFilteringComponent'
 import CreatePost from './CreatePost'
 import ExploreNewFriends from './ExploreNewFriends'
 import axios from 'axios'
+import './Home.css'
+
+import { currentUserFun,changeProfilePicFun,changeCoverPicFun } from '../functions/funtions'
 
 class Home extends React.Component {
   constructor(props){
@@ -25,9 +28,11 @@ class Home extends React.Component {
       comment_content:'',
       show:false,
       showModal:false,
+      showModalUpdate:false,
       ToastContent:'',
 
       first_name: '',
+      last_name:'',
       email: '',
       ID:'',
       profile_pic:'',
@@ -39,11 +44,18 @@ class Home extends React.Component {
       profilePicArray:[],
       coverPicArray:[],
 
+      status:'',
+
+      temp_first_name: '',
+      temp_last_name:'',
+      temp_bio:'',
+      
+
     }
     this.handleComment=this.handleComment.bind(this)
     this.toggleShow=this.toggleShow.bind(this)
     this.showModalFun=this.showModalFun.bind(this)
-    this.handleFollow=this.handleFollow.bind(this)
+    
 
     this.profile_image_click=this.profile_image_click.bind(this)
     this.cover_image_click=this.cover_image_click.bind(this)
@@ -53,19 +65,29 @@ class Home extends React.Component {
 
     this.handleSubmitCoverFile = this.handleSubmitCoverFile.bind(this)
     this.handleImagePreviewCover = this.handleImagePreviewCover.bind(this)
+    this.handleCreateStatusPost=this.handleCreateStatusPost.bind(this)
+    this.onStatusChnage=this.onStatusChnage.bind(this)
+    this.handleChange=this.handleChange.bind(this)
     
 
   }
-
+//done
   async componentDidMount() {
 
-    const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-      }
-    })
+    // const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken,
+    //     "Content-type": "multipart/form-data",
+    //   }
+    // })
+
+    const currentUser=await currentUserFun()
+
+
+
+
+
     // console.log('currentUser.data '+currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1])
     
     
@@ -94,6 +116,8 @@ class Home extends React.Component {
       profile_pic:currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1],
       cover_pic:currentUser.data.user.cover_pic[currentUser.data.user.cover_pic.length-1],
       bio:currentUser.data.user.bio,
+      first_name:currentUser.data.user.first_name,
+      last_name:currentUser.data.user.last_name,
       currentUser:currentUser.data.user
       
     })
@@ -112,41 +136,47 @@ class Home extends React.Component {
   }
   
   
-
+//Done
   async handleSubmitProfileFile(){
-    console.log('here clicked :')
+    
     const data = new FormData() 
     data.append('image', this.state.profile_image_file)
-    // data.append('caption',this.state.caption)
+    
      
     for (var [key, value] of data.entries()) { 
       console.log(key, value);
     }
   
-    await axios.post("http://localhost:5000/users/changeProfilePic", data, 
-    {
-      headers: {
-          "Authorization": "Bearer "+localStorage.usertoken,
-          "Content-type": "multipart/form-data",
-      },                    
-    }
-        )
-        .then(res => { // then print response status
+    // const res=await axios.post("http://localhost:5000/users/changeProfilePic", data, 
+    // {
+    //   headers: {
+    //       "Authorization": "Bearer "+localStorage.usertoken,
+    //       "Content-type": "multipart/form-data",
+    //   },                    
+    // })
+
+    const res=await changeProfilePicFun(data)
+
+    
+
+        // .then(res => { // then print response status
           console.log(res.data.profile_image_url)
           
           this.setState({
             profile_pic:res.data.profile_image_url,
           })
 
-        })
+        // })
 
-        const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
-        {
-          headers:{
-            'authorization':'Bearer '+localStorage.usertoken,
-            "Content-type": "multipart/form-data",
-          }
-        })
+        // const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+        // {
+        //   headers:{
+        //     'authorization':'Bearer '+localStorage.usertoken,
+        //     "Content-type": "multipart/form-data",
+        //   }
+        // })
+
+        const currentUser=await currentUserFun()
         
         this.setState({
           profilePicArray:currentUser.data.user.profile_pic,
@@ -180,30 +210,34 @@ class Home extends React.Component {
       console.log(key, value);
     }
   
-    await axios.post("http://localhost:5000/users/changeCoverPic", data, 
-    {
-      headers: {
-          "Authorization": "Bearer "+localStorage.usertoken,
-          "Content-type": "multipart/form-data",
-      },                    
-    }
-        )
-        .then(res => { // then print response status
+    // const res=await axios.post("http://localhost:5000/users/changeCoverPic", data, 
+    // {
+    //   headers: {
+    //       "Authorization": "Bearer "+localStorage.usertoken,
+    //       "Content-type": "multipart/form-data",
+    //   },                    
+    // })
+
+    const res=await changeCoverPicFun(data)
+
+        // .then(res => { // then print response status
           console.log(res.data.cover_image_url)
           
           this.setState({
             cover_pic:res.data.cover_image_url,
           })
 
-        })
+        // })
 
-    const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
-        {
-          headers:{
-            'authorization':'Bearer '+localStorage.usertoken,
-            "Content-type": "multipart/form-data",
-          }
-        })
+    // const currentUser=await axios.post('http://localhost:5000/users/currentUser',{},
+    //     {
+    //       headers:{
+    //         'authorization':'Bearer '+localStorage.usertoken,
+    //         "Content-type": "multipart/form-data",
+    //       }
+    //     })
+
+    const currentUser=await currentUserFun()
         
         this.setState({
           profilePicArray:currentUser.data.user.profile_pic,
@@ -257,9 +291,7 @@ class Home extends React.Component {
     }));
     
   }
-  handleFollow(e){
-    console.log('clicked follow')
-  }
+  
   
   showModalFun(e){
     this.setState((prevState) => ({
@@ -267,7 +299,58 @@ class Home extends React.Component {
     }));
     console.log(this.state.show)
   }
-  
+  ///status------
+  async handleCreateStatusPost(e){
+    
+    const result=await axios.post('http://localhost:5000/users/createStatusPost',{
+      content:this.state.status
+    },{
+      "headers":{
+        'authorization':'Bearer '+localStorage.usertoken
+      }
+    })
+    console.log('statuspost : '+result.data.status)
+    
+    //Component did mound copy paste
+    const currentUser=await currentUserFun()
+    this.setState({
+      profilePicArray:currentUser.data.user.profile_pic,
+      coverPicArray:currentUser.data.user.cover_pic,
+
+      show_profile_pic_moodle:false,
+      profile_image_file:'',
+
+      show_cover_pic_moodle:false,
+      cover_image_file:'',
+
+      email: currentUser.data.user.email,
+      ID:currentUser.data.user._id,
+      profile_pic:currentUser.data.user.profile_pic[currentUser.data.user.profile_pic.length-1],
+      cover_pic:currentUser.data.user.cover_pic[currentUser.data.user.cover_pic.length-1],
+      bio:currentUser.data.user.bio,
+      currentUser:currentUser.data.user
+      
+    })
+    
+  }
+  onStatusChnage(e){
+    this.setState({
+      status:e.target.value
+      
+    })
+    console.log(this.state.status)
+  }
+
+  handleChange(e){
+    console.log(e.target.name +"  "+ e.target.value)
+    this.setState({
+        [e.target.name] : e.target.value
+    })
+  }
+
+  ///
+
+
   handleComment(e){
     
     this.setState({
@@ -286,13 +369,7 @@ class Home extends React.Component {
   }
 
   render() {
-    const countries =
-    [
-        "Afghanistan",
-        "Åland Islands",
-        "Albania",
-        "Algeria"
-    ];
+  
 
     return (
       <>
@@ -388,7 +465,7 @@ class Home extends React.Component {
 {/* end Modal for Cover pic */}
 
 
-{/* Modal  */}
+{/* Modal for status */}
 <Modal show={this.state.showModal} onHide={()=>{this.setState({ showModal:false })}}>
         <Modal.Header closeButton>
           <Modal.Title>Status Confirmation</Modal.Title>
@@ -398,7 +475,7 @@ class Home extends React.Component {
           <Button variant="secondary" onClick={()=>{this.setState({ showModal:false })}}>
             Close
           </Button>
-          <Button variant="primary" onClick={()=>{this.setState({ showModal:false })}}>
+          <Button variant="primary" onClick={this.handleCreateStatusPost}>
             Yes
           </Button>
         </Modal.Footer>
@@ -406,7 +483,78 @@ class Home extends React.Component {
 {/* Modal end */}
 
 
+{/* Modal for update profile */}
 
+<Modal dialogClassName="my-modal" show={this.state.showModalUpdate} onHide={()=>{this.setState({ showModalUpdate:false })}}>
+        <Modal.Header closeButton>
+          <Modal.Title>Update Profile</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            
+         
+<div class="form-group">
+    <label for="exampleInputPassword1">First Name</label>
+    <input type="text" onChange={this.handleChange} name="temp_first_name" class="form-control" id="exampleInputPassword1" placeholder="Password"/>
+</div>
+<div class="form-group">
+    <label for="exampleInputPassword1">Last Name</label>
+    <input type="text" onChange={this.handleChange} name="temp_last_name"  class="form-control" id="exampleInputPassword1" placeholder="Password"/>
+</div>
+<div class="form-group">
+    <label for="exampleInputPassword1">Bio</label>
+    <input type="text" onChange={this.handleChange} name="temp_bio" class="form-control" id="exampleInputPassword1" placeholder="Password"/>
+</div>             
+              
+              
+            
+                    
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={()=>{this.setState({ showModalUpdate:false })}}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={async()=>{
+            
+            
+            const data={
+              
+                first_name:this.state.temp_first_name,
+                last_name:this.state.temp_last_name,
+                bio:this.state.temp_bio
+              
+            }
+            console.log("data : "+data.first_name)
+            console.log("data : "+data.last_name)
+            console.log("data : "+data.bio)
+          
+          const result=await axios.post('http://localhost:5000/users/updateProfile',data,
+          {
+            headers:{
+              'authorization':'Bearer '+localStorage.usertoken,
+              
+            }
+          }
+          )
+          console.log('result.data.user.status'+result.data.status)
+          console.log('result.data.user.first_name'+result.data.user.first_name)
+          console.log('result.data.user.last_name'+result.data.user.last_name)
+          console.log('result.data.user.bio'+result.data.user.bio)
+          if(result.data.status=='success'){
+            this.setState({
+              first_name:result.data.user.first_name,
+              last_name:result.data.user.last_name,
+              bio:result.data.user.bio,
+              
+            })
+          }
+          
+
+          }}>
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+{/* Modal end */}
 
 
 
@@ -439,11 +587,14 @@ class Home extends React.Component {
                   <Card style={{ width: '100%',height:'auto' }}>
                     
                     {/* <Image style={{height:'auto',width:'100%'}} src={nature} roundedCircle fluid thumbnail/> */}
-                    <Card.Body className="text-left">
-  <Card.Title className="text-center">{this.state.email}</Card.Title>
-                      <Card.Text>
-                        {this.state.ID}
+                    <Card.Body className="text-center">
+  <Card.Title style={{ backgroundColor:"#d3d3d3" }} className="text-center">{this.state.first_name} {this.state.last_name}</Card.Title>
+                      <Card.Text style={{ backgroundColor:"#d3d3d3" }}>
+                        {this.state.bio}
                       </Card.Text>
+                            <button type="button" onClick={()=>{console.log("this.state.showModalUpdate"+this.state.showModalUpdate); this.setState({ showModalUpdate:true }) }} class="btn btn-primary" data-toggle="modal" data-target="#exampleModalScrollable">
+                              Update Profile
+                            </button>                      
 {/* <OverlayTrigger
     placement="right"
     delay={{ show: 250, hide: 400 }}
@@ -460,7 +611,8 @@ class Home extends React.Component {
               {/* Column2 of left side ...consists of 2x2 grid of photos*/}
               <Row>
                 <Col>
-                  <Container className="border border-primary mt-2">
+                  <Container style={{maxHeight:"250px",overflowY:'scroll',padding:"5px"}} className="border border-primary mt-2">
+                  <h2>Profile Pics</h2>
                     {this.state.profilePicArray.map((p,index)=>{
                       console.log("indexx"+index)
                       if(index%2 ==0){
@@ -488,7 +640,8 @@ class Home extends React.Component {
                     } */}
                     
                   </Container>
-                  <Container className="border border-primary mt-2">
+                  <Container style={{maxHeight:"250px",overflowY:'scroll',padding:"5px"}} className="border border-primary mt-2">
+                    <h2>Cover Pics</h2>
                     {this.state.coverPicArray.map((p,index)=>{
                       console.log("indexx"+index)
                       if(index%2 ==0){
@@ -527,20 +680,21 @@ unmountOnExit="true"
 onSelect={(k)=>{ console.log("currentTab "+k); this.setState({currentTab:k})}}
 >
   <Tab eventKey="Timeline" title="Timeline">
-  <TimelineInsideProfile parent={this} />
+  <TimelineInsideProfile name="Timeline" onStatusChnage={this.onStatusChnage} parent={this} />
   
   </Tab>
   <Tab eventKey="MyTimeline" title="MyTimeline">
-  <MyTimelineInsideProfile TimelineType="MyTimeLine" parent={this} />
+  {/* <MyTimelineInsideProfile name="MyTimeline" onStatusChnage={this.onStatusChnage} TimelineType="MyTimeLine" parent={this} /> */}
+  <TimelineInsideProfile name="MyTimeline" onStatusChnage={this.onStatusChnage} parent={this} />
 
   </Tab>
   
   <Tab eventKey="Friends" title="Friends">
     {/* <Friend/> */}
-    <ExploreNewFriends typeTab={this.state.currentTab} />
+    <ExploreNewFriends name="Friends" typeTab={this.state.currentTab} />
   </Tab>
   <Tab eventKey="ExploreNewFriends" title="ExploreNewFriends">
-  <ExploreNewFriends typeTab={this.state.currentTab} />
+  <ExploreNewFriends name="ExploreNewFriends" typeTab={this.state.currentTab} />
   </Tab>
 
   <Tab eventKey="CreatePost" title="CreatePost">
@@ -551,65 +705,7 @@ onSelect={(k)=>{ console.log("currentTab "+k); this.setState({currentTab:k})}}
 
 {/* Tab layout end */}
             
-            {/* <div className="p-5">
-
             
-              {[1,2,3].map(num=>{
-
-              
-              return (
-<div>                
-              <Card className="mb-2 p-3 text-left"  style={{ width: '100%',height:'auto' }}>
-                <Card.Img variant="top" src={nature} />
-                <Card.Body>
-                  <Card.Title>This will be some caption</Card.Title>
-                  <Card.Text>
-                    Some quick example text to build on the card title and make up the bulk of
-                    the card's content.
-                  </Card.Text>
-              <Button  variant="primary">Likes <Badge variant="light">{num*num}</Badge></Button>
-              <Button className="ml-1" variant="primary">Comments <Badge variant="light">{num+1}</Badge></Button>
-                </Card.Body>
-<Accordion>
-<Card>
-  <Card.Header>
-    <Accordion.Toggle as={Button} variant="link" eventKey="0">
-      Show all comments
-    </Accordion.Toggle>
-  </Card.Header>
-  <Accordion.Collapse eventKey="0">
-      <>
-      <h2>comment number c</h2>
-      <h2>comment number c</h2>
-      <h2>comment number c</h2>
-      <div>
-          <InputGroup className="mb-3 p-3">
-              <FormControl
-                onChange={this.handleComment}
-                placeholder="Add Comment"
-                aria-label="Recipient's username"
-                aria-describedby="basic-addon2"
-              />
-              <InputGroup.Append>
-                <Button  variant="outline-info">Comment</Button>
-              </InputGroup.Append>
-          </InputGroup>        
-      </div>
-      </>
-  </Accordion.Collapse>
-</Card>
-</Accordion>                
-              </Card>
-
-
-
-</div>
-              )
-
-              })}
-
-
-            </div> */}
 
             </Col>
           </Row>

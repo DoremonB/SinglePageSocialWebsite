@@ -27,7 +27,7 @@ const UserSchema = new Schema({
   }],
   bio:{
     type:String,
-    default:''
+    default:'Default Bio'
   },
   MyFriends:[{
     type:mongoose.Schema.Types.ObjectId,

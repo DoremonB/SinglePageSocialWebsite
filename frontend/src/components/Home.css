@@ -1,4 +1,4 @@
-#fixed-menu
+/* #fixed-menu
 {
     position: fixed;
     width: 100%;
@@ -11,4 +11,9 @@
 {
     width: 100%;
     height: 95px;
-}
+} */
+
+.my-modal {
+    width: 70vw;    /* Occupy the 90% of the screen width */
+    max-width: 70vw;
+} 

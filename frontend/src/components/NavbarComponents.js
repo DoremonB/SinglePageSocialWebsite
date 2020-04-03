@@ -28,19 +28,15 @@ class NavbarComponent extends React.Component {
     <Nav className="mr-auto">
       <Nav.Link href="/register">Register</Nav.Link>
       <Nav.Link href="/login">Login</Nav.Link>
-      <Nav.Link href="/home">Home</Nav.Link>
+      {localStorage.usertoken && <Nav.Link href="/home">Home</Nav.Link>}
       
     </Nav>
 
     <Nav className="ml-auto">
-      <Nav.Link href="/notifications">Notifications</Nav.Link>
-      <Nav.Link href="/Logout">Logout</Nav.Link>
+      {localStorage.usertoken && <Nav.Link href="/notifications">Notifications</Nav.Link>}
+      {localStorage.usertoken && <Nav.Link href="/Logout">Logout</Nav.Link>}
     </Nav>
     
-    <Form inline>
-      <FormControl type="text" placeholder="Search" className="mr-sm-2" />
-      <Button variant="outline-info">Search</Button>
-    </Form>
   </Navbar>
 
 

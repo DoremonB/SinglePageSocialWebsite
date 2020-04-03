@@ -14,11 +14,14 @@ import TimelineInsideProfile from './TimelineInsideProfile'
 import Friend from './Friend'
 import MyFilteringComponent from './MyFilteringComponent'
 import axios from 'axios'
+
+import { login } from '../functions/funtions' 
+
 class Login extends React.Component {
   constructor(props){
     super(props)
     this.state={
-      username:'',
+      email:'',
       password:'',
     }
     this.handleChange=this.handleChange.bind(this)
@@ -28,17 +31,27 @@ class Login extends React.Component {
   }
   
   async handleSubmit(e){
-    console.log(this.state.username +"  "+this.state.password)
-    const response=await axios
-    .post('http://localhost:5000/users/login',{
-      email:this.state.username,
-      password:this.state.password
-    })
+    
+    // const response=await axios
+    // .post('http://localhost:5000/users/login',{
+    //   email:this.state.username,
+    //   password:this.state.password
+    // })
 
-    console.log(response.data.token)
-    localStorage.setItem('usertoken',response.data.token)
+    let data={
+      email:this.state.email,
+      password:this.state.password
+    }
+    const response=await login(data)
     
     this.props.history.push(`/home`)
+    
+    
+
+    // console.log(response.data.token)
+    // localStorage.setItem('usertoken',response.data.token)
+    
+    // this.props.history.push(`/home`)
   }
   
   
@@ -46,7 +59,6 @@ class Login extends React.Component {
     this.setState({
         [e.target.name] : e.target.value
     })
-    console.log(this.state.username +"  "+this.state.password)
   }
 
   render() {
@@ -58,11 +70,9 @@ class Login extends React.Component {
 <Form onSubmit={this.handleSubmit} style={{width:"60%"}} className="container text-left mt-2">
 
 <Form.Group >
-    <Form.Label className="text-left">Username</Form.Label>
-    <Form.Control name="username" onChange={this.handleChange} type="text" placeholder="Enter username" />
-    <Form.Text className="text-muted">
-      Username should be unique:)
-    </Form.Text>
+    <Form.Label className="text-left">Email</Form.Label>
+    <Form.Control name="email" onChange={this.handleChange} type="text" placeholder="Enter email" />
+    
   </Form.Group>
 
   

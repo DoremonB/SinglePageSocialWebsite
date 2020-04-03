@@ -12,6 +12,8 @@ import MyFilteringComponent from './MyFilteringComponent'
 import nature from '../images/nature.jpeg'
 import axios from 'axios'
 
+import { allusersmyfriendsFun, removeFriendFun } from '../functions/funtions'
+
 class Friend extends React.Component {
   constructor(props){
     super(props)
@@ -26,13 +28,15 @@ class Friend extends React.Component {
 
   async componentDidMount() {
     console.log("inside didmount")
-    const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  //   const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+
+  const myfriends=await allusersmyfriendsFun()
 
   console.log("myfriends : "+myfriends.data)
     this.setState({
@@ -52,25 +56,30 @@ class Friend extends React.Component {
     };
     
 
-    const response=await axios.post('http://localhost:5000/users/removeFriend',bodyParameters,
-    {
-      headers:{
-        'authorization':'Bearer '+localStorage.usertoken,
-        'Content-Type': 'application/json',
-      }
-    }
-    )
+    // const response=await axios.post('http://localhost:5000/users/removeFriend',bodyParameters,
+    // {
+    //   headers:{
+    //     'authorization':'Bearer '+localStorage.usertoken,
+    //     'Content-Type': 'application/json',
+    //   }
+    // }
+    // )
+
+    const response=await removeFriendFun(bodyParameters)
+
     console.log(response.data)
 
    
 
-    const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
-    {
-    headers: {
-        "Authorization": "Bearer "+localStorage.usertoken,
-        "Content-type": "multipart/form-data",
-    },                    
-  })
+  //   const myfriends=await axios.post('http://localhost:5000/users/allusersmyfriends',{},
+  //   {
+  //   headers: {
+  //       "Authorization": "Bearer "+localStorage.usertoken,
+  //       "Content-type": "multipart/form-data",
+  //   },                    
+  // })
+
+  const myfriends=await allusersmyfriendsFun()
 
   console.log("myfriends : "+myfriends.data)
     this.setState({
